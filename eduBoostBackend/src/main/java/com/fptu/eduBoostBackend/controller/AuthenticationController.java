@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fptu.eduBoostBackend.constant.ResponseObject;
 import com.fptu.eduBoostBackend.dto.request.ChangePasswordRequest;
 import com.fptu.eduBoostBackend.dto.request.ForgotPasswordRequest;
+import com.fptu.eduBoostBackend.dto.request.GoogleLoginRequest;
 import com.fptu.eduBoostBackend.dto.request.LoginRequest;
 import com.fptu.eduBoostBackend.dto.request.ResetPasswordWithTokenRequest;
 import com.fptu.eduBoostBackend.dto.request.TokenRefreshRequest;
@@ -199,6 +200,19 @@ public class AuthenticationController {
         } catch (Exception e) {
             // Fixed: Preserve stack trace
             throw new InternalServerErrorException("Failed to change password: " + e.getMessage(), e);
+        }
+    }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<ResponseObject> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        try {
+            UserResponse userResponse = authenticationService.loginWithGoogle(request.getIdToken());
+            return ResponseEntity.ok()
+                    .body(new ResponseObject(HttpStatus.OK.value(), "Google login successful", userResponse));
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException("Google login failed: " + e.getMessage(), e);
         }
     }
 }

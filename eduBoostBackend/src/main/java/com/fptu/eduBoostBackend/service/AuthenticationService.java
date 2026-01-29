@@ -35,4 +35,6 @@ public interface AuthenticationService extends UserDetailsService {
     void logout(User user);
     
     CustomerResponse mapUserToCustomerResponse(User user);
+    
+    UserResponse loginWithGoogle(String idToken);
 }

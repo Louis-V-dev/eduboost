@@ -154,10 +154,10 @@ export function useAuth() {
             throw error;
         }
     }
-    const loginWithGoogle = async (code) => {
+    const loginWithGoogle = async (idToken) => {
         setIsLoading(true);
         try {
-            const response = await authService.loginWithGoogle(code);
+            const response = await authService.loginWithGoogle(idToken);
             if (response.code === 200) {
                 const token = response.data.token;
                 localStorage.setItem("token", token);
@@ -184,23 +184,18 @@ export function useAuth() {
                     permissions: profileData.permissions || []
                 };
                 setUser(userInfo);
+                showSuccessToast("Đăng nhập thành công!");
                 
-                // Redirect dựa trên role từ profile API
-                const firstRole = Array.isArray(userInfo.roles) && userInfo.roles.length ? userInfo.roles[0] : null;
-                const roleName = typeof firstRole === 'string' ? firstRole : firstRole?.roleName;
-                if (roleName === "ADMIN") {
-                    navigate("/admin");
-                } else if (roleName === "STAFF") {
-                    navigate("/staff");
-                } else {
-                    navigate("/");
-                }
+                // Redirect giống như login thông thường - luôn chuyển đến /teacher
+                navigate("/teacher");
                 
                 return true;
             }
             return false;
         } catch (error) {
-            showErrorToast("Đăng nhập Google thất bại");
+            const errorMessage = error?.response?.data?.message || error?.message || "Đăng nhập Google thất bại";
+            showErrorToast(errorMessage);
+            console.error("Google login error:", error);
             return false;
         } finally {
             setIsLoading(false);

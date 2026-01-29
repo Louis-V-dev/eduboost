@@ -23,19 +23,6 @@ public class UserProfileResponse {
     
     // Roles
     private Set<String> roles;
-    
-    // Permissions
-    private Set<String> permissions;
-    
-    // Wallet balance (if exists)
-    private Long walletBalance;
-    
-    // Documents info
-    private Integer totalDocuments;
-    private Integer validDocuments;
-    
-    // Booking statistics
-    private Long totalBookings;
-    private Long activeBookings;
-    private Long completedBookings;
+
+
 }

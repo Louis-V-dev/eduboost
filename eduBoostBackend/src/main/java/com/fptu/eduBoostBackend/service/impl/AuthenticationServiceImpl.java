@@ -15,6 +15,10 @@ import com.fptu.eduBoostBackend.service.AuthenticationService;
 import com.fptu.eduBoostBackend.service.EmailService;
 import com.fptu.eduBoostBackend.service.RefreshTokenService;
 import com.fptu.eduBoostBackend.service.TokenService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +43,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Value("${frontend.url.email.verification}")
     private String emailVerificationUrl;
+    
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
     @Autowired
     private UserRepository userRepository;
@@ -302,5 +309,135 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private boolean isBlankString(String str) {
         return str == null || str.isBlank();
+    }
+    
+    @Override
+    @Transactional
+    public UserResponse loginWithGoogle(String idToken) {
+        try {
+            if (idToken == null || idToken.isEmpty()) {
+                throw new BadRequestException("ID token is required");
+            }
+            
+            if (googleClientId == null || googleClientId.isEmpty()) {
+                log.error("Google Client ID is not configured");
+                throw new BadRequestException("Google OAuth is not configured");
+            }
+            
+            log.info("Verifying Google ID token for client: {}", googleClientId);
+            
+            // Verify Google ID token
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), 
+                    GsonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+            
+            GoogleIdToken googleIdToken = verifier.verify(idToken);
+            if (googleIdToken == null) {
+                log.error("Google token verification failed - token is null");
+                throw new BadRequestException("Invalid Google token: Token verification failed");
+            }
+            
+            GoogleIdToken.Payload payload = googleIdToken.getPayload();
+            
+            // Extract user information from token
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
+            
+            log.info("Google token verified successfully. Email: {}", email);
+            
+            if (email == null || email.isEmpty()) {
+                throw new BadRequestException("Email not found in Google token");
+            }
+            
+            // Check if user exists by email
+            Optional<User> existingUserOpt = userRepository.findByEmail(email);
+            User user;
+            
+            if (existingUserOpt.isPresent()) {
+                // User exists, login normally
+                user = existingUserOpt.get();
+                log.info("Existing user found: {}", email);
+                
+                // Check if account is locked
+                if (!user.isAccountNonLocked()) {
+                    throw new BadRequestException("Account has been locked!");
+                }
+                
+                // User already exists, just login
+                userRepository.save(user);
+            } else {
+                // User doesn't exist, auto-register
+                log.info("User not found, creating new user: {}", email);
+                
+                // Generate username from email (take part before @)
+                String username = email.split("@")[0];
+                // Ensure username is unique
+                String baseUsername = username;
+                int counter = 1;
+                while (userRepository.existsByUsername(username)) {
+                    username = baseUsername + counter;
+                    counter++;
+                }
+                
+                // Generate a unique phone number placeholder (since phone is required and unique)
+                // Use a pattern that won't conflict with real phone numbers
+                String phonePlaceholder = "GOOGLE_" + UUID.randomUUID().toString().substring(0, 8);
+                while (userRepository.existsByPhone(phonePlaceholder)) {
+                    phonePlaceholder = "GOOGLE_" + UUID.randomUUID().toString().substring(0, 8);
+                }
+                
+                // Create new user
+                user = User.builder()
+                        .username(username)
+                        .email(email)
+                        .phone(phonePlaceholder) // Placeholder phone for Google users
+                        .password(passwordEncoder.encode(UUID.randomUUID().toString())) // Random password, user won't use it
+                        .isVerify(true) // Google accounts are pre-verified
+                        .build();
+                
+                // Assign default role (TEACH_ROLE - same as email registration)
+                Set<Role> roles = new HashSet<>();
+                Optional<Role> teachRole = roleRepository.findById(PredefinedRole.TEACH_ROLE);
+                if (teachRole.isPresent()) {
+                    roles.add(teachRole.get());
+                    log.info("Assigned TEACH_ROLE to new Google user");
+                } else {
+                    log.warn("TEACH_ROLE not found in database, user will have no roles");
+                }
+                user.setRoles(roles);
+                
+                user = userRepository.save(user);
+                log.info("Auto-registered new user from Google: {} with ID: {}", email, user.getUserId());
+            }
+            
+            // Create authentication
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    user.getUsername(), null, user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Generate tokens
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+            String token = tokenService.generateToken(user);
+            
+            log.info("Google login successful for user: {}", email);
+            return UserMapper.toResponse(user, token, refreshToken.getToken());
+            
+        } catch (BadRequestException e) {
+            // Re-throw BadRequestException as-is
+            log.error("BadRequestException in Google login: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Google login failed", e);
+            log.error("Exception type: {}", e.getClass().getName());
+            log.error("Exception message: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("Cause: {}", e.getCause().getMessage());
+                log.error("Cause type: {}", e.getCause().getClass().getName());
+            }
+            throw new BadRequestException("Google login failed: " + e.getMessage(), e);
+        }
     }
 }

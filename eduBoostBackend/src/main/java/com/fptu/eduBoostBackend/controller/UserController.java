@@ -29,13 +29,4 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
-    @GetMapping("/by-phone")
-    @Operation(summary = "Get user profile by phone number", 
-               description = "Returns the profile information of a user by their phone number including wallet balance, booking statistics, and documents info")
-    public ResponseEntity<UserProfileResponse> getUserByPhone(
-            @io.swagger.v3.oas.annotations.Parameter(description = "Phone number of the user", required = true)
-            @org.springframework.web.bind.annotation.RequestParam String phone) {
-        UserProfileResponse profile = userService.getUserByPhone(phone);
-        return ResponseEntity.ok(profile);
-    }
 }

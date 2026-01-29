@@ -26,24 +26,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile() {
-        // Get authenticated user from SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        // Fetch fresh user data from database
         User user = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
-        // Get wallet balance
 
-        // Get roles
         var roles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
-        
-        // Get permissions
-        var permissions = user.getAllPermissions();
-        
 
         
         log.info("User profile retrieved for userId: {}", user.getUserId());
@@ -57,43 +49,8 @@ public class UserServiceImpl implements UserService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .roles(roles)
-                .permissions(permissions)
                 .build();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public UserProfileResponse getUserByPhone(String phone) {
-        log.info("Fetching user profile by phone: {}", phone);
-        
-        // Find user by phone number
-        User user = userRepository.findByPhone(phone)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
-        
 
-        
-        // Get roles
-        var roles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-        
-        // Get permissions
-        var permissions = user.getAllPermissions();
-        
-
-        
-        log.info("User profile retrieved by phone for userId: {}", user.getUserId());
-        
-        return UserProfileResponse.builder()
-                .userId(user.getUserId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .isVerify(user.isVerify())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .roles(roles)
-                .permissions(permissions)
-                .build();
-    }
 }

@@ -226,9 +226,9 @@ export const authService = {
     },
 
 
-    loginWithGoogle: async (code) => {
+    loginWithGoogle: async (idToken) => {
         try {
-            const response = await axios.post(`${API.BASE}/auth/google-login`, { code }, {
+            const response = await axios.post(`${API.BASE}/auth/google-login`, { idToken }, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -243,7 +243,7 @@ export const authService = {
                     message: res.message || 'Google login successful',
                     data: {
                         token: res.data.token,
-                        roles: res.data.roles || []
+                        refreshToken: res.data.refreshToken
                     }
                 };
             }
@@ -251,7 +251,13 @@ export const authService = {
             return errorResponse(res.message || 'Google login failed');
         } catch (error) {
             console.error("Google login failed", error);
-            return errorResponse(error?.response?.data?.message || 'Google login failed');
+            const errorMessage = error?.response?.data?.message || error?.message || 'Google login failed';
+            console.error("Error details:", {
+                status: error?.response?.status,
+                data: error?.response?.data,
+                message: errorMessage
+            });
+            return errorResponse(errorMessage);
         }
     }
 

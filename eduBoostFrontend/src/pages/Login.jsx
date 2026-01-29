@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, loginWithGoogle, isLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     username: '',
@@ -14,6 +14,74 @@ const Login = () => {
   
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleButtonRef = useRef(null);
+  
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  const handleGoogleSignIn = async (response) => {
+    if (!response.credential) {
+      alert('Không nhận được thông tin từ Google');
+      setGoogleLoading(false);
+      return;
+    }
+
+    setGoogleLoading(true);
+    try {
+      const success = await loginWithGoogle(response.credential);
+      if (!success) {
+        alert('Đăng nhập Google thất bại');
+      }
+      // Navigation is handled in useAuth hook
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      alert('Đăng nhập Google thất bại: ' + (error.message || 'Lỗi không xác định'));
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Wait for Google script to load, then initialize and render button
+    const initGoogleButton = () => {
+      if (googleClientId && window.google && googleButtonRef.current) {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleSignIn,
+        });
+        
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          type: 'standard',
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: '100%',
+        });
+      }
+    };
+
+    if (window.google) {
+      initGoogleButton();
+    } else {
+      // Wait for Google script to load
+      const checkInterval = setInterval(() => {
+        if (window.google) {
+          clearInterval(checkInterval);
+          initGoogleButton();
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+      }, 10000);
+
+      return () => clearInterval(checkInterval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleClientId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,15 +212,40 @@ const Login = () => {
         <span>Hoặc tiếp tục với</span>
       </div>
 
-      <div className="social-login">
-        <button type="button" className="btn btn-glass social-btn" disabled>
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" />
-          Google
-        </button>
-        <button type="button" className="btn btn-glass social-btn" disabled>
-          <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" width="20" />
-          Facebook
-        </button>
+      <div className="social-login" style={{ display: 'flex', justifyContent: 'center' }}>
+        {googleClientId && window.google ? (
+          <div ref={googleButtonRef} style={{ width: '100%', maxWidth: '400px' }}></div>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-glass social-btn full-width"
+            disabled={googleLoading || isLoading || !googleClientId}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1.5rem'
+            }}
+          >
+            {googleLoading ? (
+              <>
+                <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                <span>Đang xử lý...</span>
+              </>
+            ) : (
+              <>
+                <img 
+                  src="https://www.svgrepo.com/show/475656/google-color.svg" 
+                  alt="Google" 
+                  width="20" 
+                  height="20"
+                />
+                <span>Đăng nhập với Google</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       <p className="auth-footer">

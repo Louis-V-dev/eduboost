@@ -9,6 +9,7 @@ import { CTA } from './components/layout/Footer';
 import DynamicBackground from './components/ui/DynamicBackground';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import RegisterMethod from './pages/RegisterMethod';
 import ForgotPassword from './pages/ForgotPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -76,7 +77,8 @@ function App() {
           {/* Authentication Pages */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<RegisterMethod />} />
+            <Route path="/register/email" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/reset-password" element={<ResetPassword />} />
