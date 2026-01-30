@@ -82,6 +82,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private TeacherRepository teacherRepository;
+
     @Override
     @Transactional
     public User register(UserRegistrationRequest request) {
@@ -111,6 +114,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
+
+        // Tạo bản ghi Teacher nếu user có role TEACHER
+        if (roles.stream().anyMatch(role -> role.getName().equals(PredefinedRole.TEACH_ROLE))) {
+            Teacher teacher = Teacher.builder()
+                    .user(savedUser)
+                    .build();
+            teacherRepository.save(teacher);
+            log.info("Teacher record created for user: {}", savedUser.getUsername());
+        }
 
         // Tạo verification token
         String token = UUID.randomUUID().toString();
