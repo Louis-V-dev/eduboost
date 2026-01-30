@@ -1,14 +1,25 @@
 package com.fptu.eduBoostBackend.service.impl;
 
+import com.fptu.eduBoostBackend.constant.PredefinedRole;
+import com.fptu.eduBoostBackend.dto.request.LinkStudentRequest;
 import com.fptu.eduBoostBackend.dto.request.ValidateInvitationRequest;
+import com.fptu.eduBoostBackend.dto.response.LinkStudentResponse;
 import com.fptu.eduBoostBackend.dto.response.ValidateInvitationResponse;
-import com.fptu.eduBoostBackend.entities.Student;
-import com.fptu.eduBoostBackend.entities.StudentInvitation;
+import com.fptu.eduBoostBackend.entities.*;
 import com.fptu.eduBoostBackend.entities.enums.InvitationStatus;
+import com.fptu.eduBoostBackend.exception.exceptions.BadRequestException;
+import com.fptu.eduBoostBackend.exception.exceptions.ConflictException;
+import com.fptu.eduBoostBackend.exception.exceptions.ForbiddenException;
+import com.fptu.eduBoostBackend.exception.exceptions.ResourceNotFoundException;
+import com.fptu.eduBoostBackend.repositories.ParentRepository;
+import com.fptu.eduBoostBackend.repositories.ParentStudentRepository;
 import com.fptu.eduBoostBackend.repositories.StudentInvitationRepository;
+import com.fptu.eduBoostBackend.repositories.UserRepository;
 import com.fptu.eduBoostBackend.service.ParentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +31,9 @@ import java.time.LocalDateTime;
 public class ParentServiceImpl implements ParentService {
 
     private final StudentInvitationRepository studentInvitationRepository;
+    private final UserRepository userRepository;
+    private final ParentRepository parentRepository;
+    private final ParentStudentRepository parentStudentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -114,5 +128,89 @@ public class ParentServiceImpl implements ParentService {
             return digits;
         }
         return "N/A";
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        return userRepository.findById(currentUser.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private Parent getCurrentParent() {
+        User currentUser = getCurrentUser();
+        return parentRepository.findByUser(currentUser)
+                .orElseThrow(() -> new ForbiddenException("User is not a parent"));
+    }
+
+    @Override
+    @Transactional
+    public LinkStudentResponse linkStudent(LinkStudentRequest request) {
+        Parent parent = getCurrentParent();
+        log.info("Parent {} attempting to link with student using code: {}", 
+                parent.getParentId(), request.getInvitationCode());
+
+        // Validate invitation
+        StudentInvitation invitation = studentInvitationRepository
+                .findByInvitationCode(request.getInvitationCode())
+                .orElseThrow(() -> new BadRequestException("Mã mời không tồn tại"));
+
+        // Kiểm tra status
+        if (invitation.getStatus() == InvitationStatus.USED) {
+            throw new BadRequestException("Mã mời đã được sử dụng");
+        }
+        if (invitation.getStatus() == InvitationStatus.REVOKED) {
+            throw new BadRequestException("Mã mời đã bị thu hồi");
+        }
+        if (invitation.getStatus() == InvitationStatus.EXPIRED) {
+            throw new BadRequestException("Mã mời đã hết hạn");
+        }
+
+        // Kiểm tra thời gian hết hạn
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Mã mời đã hết hạn");
+        }
+
+        Student student = invitation.getStudent();
+
+        // Kiểm tra đã kết nối chưa
+        if (parentStudentRepository.existsByParentAndStudent(parent, student)) {
+            throw new ConflictException("Bạn đã kết nối với học sinh này rồi");
+        }
+
+        // Tạo liên kết parent-student
+        ParentStudent parentStudent = ParentStudent.builder()
+                .parent(parent)
+                .student(student)
+                .relationship(request.getRelationship())
+                .build();
+        ParentStudent savedLink = parentStudentRepository.save(parentStudent);
+
+        // Cập nhật invitation
+        invitation.setStatus(InvitationStatus.USED);
+        invitation.setUsedAt(LocalDateTime.now());
+        invitation.setUsedBy(parent);
+        studentInvitationRepository.save(invitation);
+
+        log.info("Successfully linked parent {} with student {}", 
+                parent.getParentId(), student.getStudentId());
+
+        // Build response
+        LinkStudentResponse.StudentLinkDTO studentDTO = LinkStudentResponse.StudentLinkDTO.builder()
+                .studentId(student.getStudentId())
+                .studentCode(student.getStudentCode())
+                .fullName(student.getUser().getFullName() != null ? 
+                        student.getUser().getFullName() : student.getUser().getUsername())
+                .className(student.getClassEntity() != null ? 
+                        student.getClassEntity().getClassName() : "N/A")
+                .avatar(student.getUser().getAvatarUrl())
+                .build();
+
+        return LinkStudentResponse.builder()
+                .linkId(savedLink.getId())
+                .student(studentDTO)
+                .relationship(savedLink.getRelationship())
+                .linkedAt(LocalDateTime.now())
+                .build();
     }
 }

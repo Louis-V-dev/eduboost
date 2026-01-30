@@ -1,13 +1,17 @@
 package com.fptu.eduBoostBackend.controller;
 
+import com.fptu.eduBoostBackend.dto.request.LinkStudentRequest;
 import com.fptu.eduBoostBackend.dto.request.ValidateInvitationRequest;
+import com.fptu.eduBoostBackend.dto.response.LinkStudentResponse;
 import com.fptu.eduBoostBackend.dto.response.ValidateInvitationResponse;
 import com.fptu.eduBoostBackend.service.ParentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,6 +30,19 @@ public class ParentController {
     public ResponseEntity<ValidateInvitationResponse> validateInvitation(
             @Valid @RequestBody ValidateInvitationRequest request) {
         ValidateInvitationResponse response = parentService.validateInvitation(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/link-student")
+    @SecurityRequirement(name = "api")
+    @PreAuthorize("hasRole('PARENT')")
+    @Operation(
+        summary = "Link parent with student",
+        description = "Links an authenticated parent with a student using an invitation code. Creates a parent-student relationship and marks the invitation as used."
+    )
+    public ResponseEntity<LinkStudentResponse> linkStudent(
+            @Valid @RequestBody LinkStudentRequest request) {
+        LinkStudentResponse response = parentService.linkStudent(request);
         return ResponseEntity.ok(response);
     }
 }
