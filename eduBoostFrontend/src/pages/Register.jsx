@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
-const Register = () => {
+const Register = ({ role: roleProp }) => {
     const navigate = useNavigate();
     const { register, isLoading } = useAuth();
+    const role = roleProp ?? new URLSearchParams(window.location.search).get('role');
     
     const [formData, setFormData] = useState({
         username: '',
@@ -87,7 +88,8 @@ const Register = () => {
         }
 
         try {
-            await register(formData, () => {
+            const dataToSend = role ? { ...formData, role } : formData;
+            await register(dataToSend, () => {
                 setShowSuccess(true);
                 // Reset form
                 setFormData({
@@ -135,8 +137,8 @@ const Register = () => {
 
     return (
         <div className="auth-card glass">
-            <h2>Tạo tài khoản mới</h2>
-            <p className="auth-subtitle">Bắt đầu hành trình giáo dục số ngay hôm nay.</p>
+            <h2>{role === 'parent' ? 'Đăng ký tài khoản phụ huynh' : 'Tạo tài khoản mới'}</h2>
+            <p className="auth-subtitle">{role === 'parent' ? 'Kết nối với con em qua mã mời từ giáo viên.' : 'Bắt đầu hành trình giáo dục số ngay hôm nay.'}</p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
                 <div className="form-group">

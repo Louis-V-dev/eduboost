@@ -20,12 +20,23 @@ import PublicLayout from './layouts/PublicLayout';
 import AuthLayout from './layouts/AuthLayout';
 import TeacherLayout from './layouts/TeacherLayout';
 import AdminLayout from './layouts/AdminLayout';
+import ParentLayout from './layouts/ParentLayout';
 
 import CourseLibrary from './pages/student/CourseLibrary';
 import AIChat from './pages/student/AIChat';
 import Forum from './pages/student/Forum';
 import CreateQuiz from './pages/teacher/CreateQuiz';
 import ExamGenerator from './pages/teacher/ExamGenerator';
+import ClassList from './pages/teacher/ClassList';
+import ClassStudents from './pages/teacher/ClassStudents';
+import CreateStudent from './pages/teacher/CreateStudent';
+import StudentDetail from './pages/teacher/StudentDetail';
+import StudentInvitations from './pages/teacher/StudentInvitations';
+import EditStudent from './pages/teacher/EditStudent';
+import LinkStudent from './pages/parent/LinkStudent';
+import MyStudents from './pages/parent/MyStudents';
+import ParentStudentDetail from './pages/parent/StudentDetail';
+import InvitationStats from './pages/admin/InvitationStats';
 
 const Home = () => (
   <>
@@ -79,9 +90,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterMethod />} />
             <Route path="/register/email" element={<Register />} />
+            <Route path="/register/parent" element={<Register role="parent" />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/parent/link" element={<LinkStudent />} />
           </Route>
 
           {/* Student Dashboard Routes */}
@@ -96,6 +109,12 @@ function App() {
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPlaceholder title="Teacher Dashboard" />} />
+            <Route path="classes" element={<ClassList />} />
+            <Route path="classes/:classId/students" element={<ClassStudents />} />
+            <Route path="students/new" element={<CreateStudent />} />
+            <Route path="students/:studentId" element={<StudentDetail />} />
+            <Route path="students/:studentId/edit" element={<EditStudent />} />
+            <Route path="students/:studentId/invitations" element={<StudentInvitations />} />
             <Route path="users" element={<DashboardPlaceholder title="Manage Users" />} />
             <Route path="lectures" element={<DashboardPlaceholder title="Manage Lectures" />} />
             <Route path="create-quiz" element={<CreateQuiz />} />
@@ -103,11 +122,19 @@ function App() {
             <Route path="grading" element={<DashboardPlaceholder title="AI Grading" />} />
           </Route>
 
+          {/* Parent Dashboard Routes */}
+          <Route path="/parent" element={<ParentLayout />}>
+            <Route index element={<Navigate to="students" replace />} />
+            <Route path="students" element={<MyStudents />} />
+            <Route path="students/:studentId" element={<ParentStudentDetail />} />
+          </Route>
+
           {/* Admin Dashboard Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPlaceholder title="Admin Dashboard" />} />
             <Route path="users" element={<DashboardPlaceholder title="User Account Management" />} />
+            <Route path="invitations" element={<InvitationStats />} />
             <Route path="settings" element={<DashboardPlaceholder title="System Settings" />} />
           </Route>
 

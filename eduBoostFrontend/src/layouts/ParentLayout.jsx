@@ -1,45 +1,44 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { Users, Settings, LayoutDashboard, LogOut, Mail } from 'lucide-react';
+import { LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
-const AdminLayout = () => {
+const ParentLayout = () => {
     const location = useLocation();
-    const isActive = (path) => location.pathname === path;
+    const { user, logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+    };
 
     return (
-        <div className="admin-layout">
-            <aside className="sidebar glass-dark">
+        <div className="parent-layout">
+            <aside className="sidebar glass">
                 <div className="sidebar-header">
                     <Link to="/" className="logo">
                         <img src={logo} alt="EduBoost" />
-                        <span style={{ color: 'white' }}>EduBoost Admin</span>
+                        <span>EduBoost</span>
                     </Link>
                 </div>
 
                 <nav className="sidebar-nav">
-                    <Link to="/admin/dashboard" className={`nav-item ${isActive('/admin/dashboard') ? 'active' : ''}`}>
-                        <LayoutDashboard size={20} /> Tổng quan
+                    <Link to="/parent" className={`nav-item ${location.pathname === '/parent' ? 'active' : ''}`}>
+                        <LayoutDashboard size={20} /> Trang chủ
                     </Link>
-                    <Link to="/admin/users" className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}>
-                        <Users size={20} /> Quản lý tài khoản
-                    </Link>
-                    <Link to="/admin/invitations" className={`nav-item ${location.pathname.startsWith('/admin/invitations') ? 'active' : ''}`}>
-                        <Mail size={20} /> Mã mời
-                    </Link>
-                    <Link to="/admin/settings" className={`nav-item ${isActive('/admin/settings') ? 'active' : ''}`}>
-                        <Settings size={20} /> Cài đặt hệ thống
+                    <Link to="/parent/students" className={`nav-item ${location.pathname.startsWith('/parent/students') ? 'active' : ''}`}>
+                        <Users size={20} /> Con của tôi
                     </Link>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button className="nav-item logout">
+                    <button className="nav-item logout" onClick={handleLogout}>
                         <LogOut size={20} /> Đăng xuất
                     </button>
                     <div className="user-profile">
-                        <div className="avatar admin-avatar">AD</div>
+                        <div className="avatar">{user?.username?.substring(0, 2).toUpperCase() || user?.fullName?.substring(0, 2).toUpperCase() || 'PH'}</div>
                         <div className="user-info">
-                            <span className="name">Admin User</span>
-                            <span className="role">Administrator</span>
+                            <span className="name">{user?.username || user?.fullName || 'Phụ huynh'}</span>
+                            <span className="role">Phụ huynh</span>
                         </div>
                     </div>
                 </div>
@@ -47,10 +46,8 @@ const AdminLayout = () => {
 
             <main className="dashboard-content">
                 <header className="topbar glass">
-                    <h2>Khu vực quản trị</h2>
-                    <div className="topbar-actions">
-                        <span className="badge">System Status: Stable</span>
-                    </div>
+                    <h2>Khu vực Phụ huynh</h2>
+                    <div className="topbar-actions" />
                 </header>
                 <div className="page-container">
                     <Outlet />
@@ -58,19 +55,11 @@ const AdminLayout = () => {
             </main>
 
             <style>{`
-                .admin-layout {
+                .parent-layout {
                     display: grid;
                     grid-template-columns: 260px 1fr;
                     min-height: 100vh;
                     background: var(--color-bg-primary);
-                }
-                
-                /* Dark sidebar for admin to distinguish */
-                .glass-dark {
-                    background: rgba(30, 30, 40, 0.95);
-                    backdrop-filter: blur(12px);
-                    border-right: 1px solid rgba(255,255,255,0.1);
-                    color: #fff;
                 }
 
                 .sidebar {
@@ -79,6 +68,7 @@ const AdminLayout = () => {
                     top: 0;
                     display: flex;
                     flex-direction: column;
+                    border-right: 1px solid var(--glass-border);
                     padding: 1.5rem;
                 }
 
@@ -87,8 +77,11 @@ const AdminLayout = () => {
                 }
 
                 .logo {
-                    font-size: 1.4rem;
+                    font-size: 1.5rem;
                     font-weight: 800;
+                    background: linear-gradient(135deg, var(--color-accent-1), var(--color-accent-2));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
                     display: flex;
                     align-items: center;
                     gap: 12px;
@@ -98,6 +91,12 @@ const AdminLayout = () => {
                 .logo img {
                     height: 32px;
                     width: auto;
+                }
+
+                .logo span {
+                    background: linear-gradient(135deg, var(--color-accent-1), var(--color-accent-2));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
                 }
 
                 .sidebar-nav {
@@ -113,7 +112,7 @@ const AdminLayout = () => {
                     gap: 12px;
                     padding: 0.75rem 1rem;
                     border-radius: 12px;
-                    color: rgba(255,255,255,0.7);
+                    color: var(--color-text-secondary);
                     font-weight: 500;
                     transition: all 0.2s;
                     border: none;
@@ -126,16 +125,17 @@ const AdminLayout = () => {
                 }
 
                 .nav-item:hover, .nav-item.active {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #fff;
+                    background: rgba(96, 78, 255, 0.1);
+                    color: var(--color-accent-1);
                 }
-                
-                 .nav-item.active {
-                     border-left: 3px solid var(--color-accent-1);
+
+                .nav-item.active {
+                    background: linear-gradient(90deg, rgba(96, 78, 255, 0.1) 0%, transparent 100%);
+                    border-left: 3px solid var(--color-accent-1);
                 }
 
                 .sidebar-footer {
-                    border-top: 1px solid rgba(255,255,255,0.1);
+                    border-top: 1px solid rgba(0,0,0,0.05);
                     padding-top: 1.5rem;
                 }
 
@@ -146,14 +146,11 @@ const AdminLayout = () => {
                     margin-top: 1rem;
                 }
 
-                .avatar.admin-avatar {
-                    background: #ff4757;
-                }
-                
                 .avatar {
                     width: 40px;
                     height: 40px;
                     border-radius: 50%;
+                    background: var(--color-accent-1);
                     color: white;
                     display: flex;
                     align-items: center;
@@ -166,9 +163,9 @@ const AdminLayout = () => {
                     flex-direction: column;
                     font-size: 0.9rem;
                 }
-                
-                .user-info .name { font-weight: 600; color: white;}
-                .user-info .role { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+                .user-info .name { font-weight: 600; }
+                .user-info .role { font-size: 0.8rem; color: var(--color-text-secondary); }
 
                 .dashboard-content {
                     display: flex;
@@ -184,24 +181,15 @@ const AdminLayout = () => {
                     border-bottom: 1px solid var(--glass-border);
                     background: rgba(255,255,255,0.5);
                 }
-                
+
                 .page-container {
                     padding: 2rem;
                     flex: 1;
                     overflow-y: auto;
-                }
-                
-                .badge {
-                    background: #2ed573;
-                    color: white;
-                    padding: 4px 12px;
-                    border-radius: 20px;
-                    font-size: 0.8rem;
-                    font-weight: 600;
                 }
             `}</style>
         </div>
     );
 };
 
-export default AdminLayout;
+export default ParentLayout;

@@ -199,3 +199,26 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+/* Invitation code and code elements - ensure readable (black) text on light background */
+code {
+  color: var(--color-text-primary);
+  font-family: var(--font-main);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Status badges (invitation, etc.) */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.status-active { background: rgba(34, 197, 94, 0.15); color: #15803d; }
+.status-used { background: rgba(107, 114, 128, 0.2); color: #4b5563; }
+.status-expired { background: rgba(245, 158, 11, 0.2); color: #b45309; }
+.status-revoked { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+.status-default { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
