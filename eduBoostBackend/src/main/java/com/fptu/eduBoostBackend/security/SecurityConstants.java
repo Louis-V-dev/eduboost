@@ -18,6 +18,5 @@ public class SecurityConstants {
     public static final int BEARER_PREFIX_LENGTH = 7;
 
     private SecurityConstants() {
-        // Private constructor to prevent instantiation
     }
 }

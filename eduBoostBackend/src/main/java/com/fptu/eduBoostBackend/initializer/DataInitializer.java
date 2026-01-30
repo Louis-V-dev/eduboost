@@ -26,7 +26,6 @@ public class DataInitializer implements CommandLineRunner {
         if (userRepository.count() > 0) {
             return;
         }
-
         initializeRoles();
         initializeUsers();
     }
@@ -42,7 +41,6 @@ public class DataInitializer implements CommandLineRunner {
             roleRepository.save(adminRole);
         }
 
-
         Role teachRole = Role.builder()
                 .name(TEACH_ROLE)
                 .description("Teacher")
@@ -50,7 +48,6 @@ public class DataInitializer implements CommandLineRunner {
         if (!roleRepository.existsByName("TEACHER")) {
             roleRepository.save(teachRole);
         }
-
         Role studentRole = Role.builder()
                 .name(STUDENT_ROLE)
                 .description("student")
@@ -58,16 +55,10 @@ public class DataInitializer implements CommandLineRunner {
         if (!roleRepository.existsByName("STUDENT")) {
             roleRepository.save(studentRole);
         }
-
     }
-
 
     private void initializeUsers() {
         Role adminRole = roleRepository.findByName("ADMIN").orElseThrow();
-        Role staffRole = roleRepository.findByName("TEACHER").orElseThrow();
-        Role customerRole = roleRepository.findByName("STUDENT").orElseThrow();
-
-        // Create Admin User
         User adminUser = User.builder()
                 .username("admin")
                 .email("admin@eduboost.com")
@@ -78,8 +69,6 @@ public class DataInitializer implements CommandLineRunner {
                 .roles(Set.of(adminRole))
                 .build();
         userRepository.save(adminUser);
-
-
     }
 }
 
