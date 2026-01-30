@@ -75,4 +75,18 @@ public class ParentController {
         ParentStudentDetailResponse student = parentService.getStudentDetail(studentId);
         return ResponseEntity.ok(student);
     }
+
+    @DeleteMapping("/students/{studentId}/unlink")
+    @SecurityRequirement(name = "api")
+    @PreAuthorize("hasRole('PARENT')")
+    @Operation(
+        summary = "Unlink student",
+        description = "Removes the link between the authenticated parent and a specific student"
+    )
+    public ResponseEntity<Void> unlinkStudent(
+            @Parameter(description = "Student ID", required = true)
+            @PathVariable String studentId) {
+        parentService.unlinkStudent(studentId);
+        return ResponseEntity.noContent().build();
+    }
 }

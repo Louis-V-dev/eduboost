@@ -13,4 +13,5 @@ public interface ParentService {
     LinkStudentResponse linkStudent(LinkStudentRequest request);
     List<ParentStudentDetailResponse> getMyStudents();
     ParentStudentDetailResponse getStudentDetail(String studentId);
+    void unlinkStudent(String studentId);
 }

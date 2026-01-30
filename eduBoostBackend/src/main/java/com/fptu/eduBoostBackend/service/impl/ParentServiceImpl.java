@@ -294,4 +294,21 @@ public class ParentServiceImpl implements ParentService {
                 .linkedAt(LocalDateTime.now()) // TODO: add linkedAt field to ParentStudent entity
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void unlinkStudent(String studentId) {
+        Parent parent = getCurrentParent();
+        log.info("Parent {} attempting to unlink student: {}", parent.getParentId(), studentId);
+
+        List<ParentStudent> parentStudents = parentStudentRepository.findByParent(parent);
+        
+        ParentStudent parentStudent = parentStudents.stream()
+                .filter(ps -> ps.getStudent().getStudentId().equals(studentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found or not linked to you"));
+
+        parentStudentRepository.delete(parentStudent);
+        log.info("Successfully unlinked parent {} from student {}", parent.getParentId(), studentId);
+    }
 }
