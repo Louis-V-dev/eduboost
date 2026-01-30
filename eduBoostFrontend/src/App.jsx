@@ -20,12 +20,28 @@ import PublicLayout from './layouts/PublicLayout';
 import AuthLayout from './layouts/AuthLayout';
 import TeacherLayout from './layouts/TeacherLayout';
 import AdminLayout from './layouts/AdminLayout';
+import UserProfile from './pages/common/UserProfile';
 
+// Student Pages
 import CourseLibrary from './pages/student/CourseLibrary';
 import AIChat from './pages/student/AIChat';
 import Forum from './pages/student/Forum';
+import ExamList from './pages/student/ExamList';
+import TakeExam from './pages/student/TakeExam';
+
+// Teacher Pages
 import CreateQuiz from './pages/teacher/CreateQuiz';
 import ExamGenerator from './pages/teacher/ExamGenerator';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import LectureManagement from './pages/teacher/LectureManagement';
+import AIGrading from './pages/teacher/AIGrading';
+import LectureEditorDoc from './pages/teacher/LectureEditorDoc';
+import LectureEditorSlide from './pages/teacher/LectureEditorSlide';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import Settings from './pages/admin/Settings';
 
 const Home = () => (
   <>
@@ -90,25 +106,33 @@ function App() {
             <Route path="courses" element={<CourseLibrary />} />
             <Route path="chat" element={<AIChat />} />
             <Route path="forum" element={<Forum />} />
+            <Route path="exams" element={<ExamList />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
+
+          {/* Standalone Exam Route (Full Screen) */}
+          <Route path="/student/exam/:id" element={<TakeExam />} />
 
           {/* Teacher Dashboard Routes */}
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPlaceholder title="Teacher Dashboard" />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="users" element={<DashboardPlaceholder title="Manage Users" />} />
-            <Route path="lectures" element={<DashboardPlaceholder title="Manage Lectures" />} />
+            <Route path="lectures" element={<LectureManagement />} />
+            <Route path="lectures/doc" element={<LectureEditorDoc />} />
+            <Route path="lectures/slide" element={<LectureEditorSlide />} />
             <Route path="create-quiz" element={<CreateQuiz />} />
             <Route path="exam-generator" element={<ExamGenerator />} />
-            <Route path="grading" element={<DashboardPlaceholder title="AI Grading" />} />
+            <Route path="grading" element={<AIGrading />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
 
           {/* Admin Dashboard Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPlaceholder title="Admin Dashboard" />} />
-            <Route path="users" element={<DashboardPlaceholder title="User Account Management" />} />
-            <Route path="settings" element={<DashboardPlaceholder title="System Settings" />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
         </Routes>

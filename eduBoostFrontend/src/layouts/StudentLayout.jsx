@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { BookOpen, MessageSquare, Users, Settings, LogOut, LayoutDashboard } from 'lucide-react';
+import { BookOpen, MessageSquare, Users, Settings, LogOut, LayoutDashboard, FileQuestion } from 'lucide-react';
+import UserMenu from '../components/common/UserMenu';
 
 const StudentLayout = () => {
     const location = useLocation();
@@ -24,22 +25,16 @@ const StudentLayout = () => {
                     <Link to="/student/chat" className={`nav-item ${isActive('/student/chat') ? 'active' : ''}`}>
                         <MessageSquare size={20} /> Chat AI
                     </Link>
+                    <Link to="/student/exams" className={`nav-item ${isActive('/student/exams') ? 'active' : ''}`}>
+                        <FileQuestion size={20} /> Bài kiểm tra
+                    </Link>
                     <Link to="/student/forum" className={`nav-item ${isActive('/student/forum') ? 'active' : ''}`}>
                         <Users size={20} /> Diễn đàn
                     </Link>
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button className="nav-item logout">
-                        <LogOut size={20} /> Đăng xuất
-                    </button>
-                    <div className="user-profile">
-                        <div className="avatar">HV</div>
-                        <div className="user-info">
-                            <span className="name">Học viên A</span>
-                            <span className="role">Lớp 12A1</span>
-                        </div>
-                    </div>
+                    <UserMenu userType="student" />
                 </div>
             </aside>
 

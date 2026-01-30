@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { Users, Settings, Shield, LayoutDashboard, LogOut } from 'lucide-react';
+import UserMenu from '../components/common/UserMenu';
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -29,16 +30,7 @@ const AdminLayout = () => {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button className="nav-item logout">
-                        <LogOut size={20} /> Đăng xuất
-                    </button>
-                    <div className="user-profile">
-                        <div className="avatar admin-avatar">AD</div>
-                        <div className="user-info">
-                            <span className="name">Admin User</span>
-                            <span className="role">Administrator</span>
-                        </div>
-                    </div>
+                    <UserMenu userType="admin" />
                 </div>
             </aside>
 

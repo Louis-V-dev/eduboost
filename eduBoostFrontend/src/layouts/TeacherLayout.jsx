@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { BookOpen, FileQuestion, PenTool, LayoutDashboard, LogOut, CheckSquare, FileText } from 'lucide-react';
+import UserMenu from '../components/common/UserMenu';
 import { useAuth } from '../hooks/useAuth';
 
 const TeacherLayout = () => {
@@ -41,16 +42,7 @@ const TeacherLayout = () => {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button className="nav-item logout" onClick={handleLogout}>
-                        <LogOut size={20} /> Đăng xuất
-                    </button>
-                    <div className="user-profile">
-                        <div className="avatar">{user?.username?.substring(0, 2).toUpperCase() || 'GV'}</div>
-                        <div className="user-info">
-                            <span className="name">{user?.username || user?.fullName || 'Giáo viên'}</span>
-                            <span className="role">Giáo viên</span>
-                        </div>
-                    </div>
+                    <UserMenu userType="teacher" />
                 </div>
             </aside>
 
