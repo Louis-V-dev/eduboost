@@ -320,14 +320,15 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     private String generateStudentCode() {
-        String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        String prefix = "ST" + yearMonth;
+        // Format: ST + 2 chữ số năm + 6 chữ số ngẫu nhiên = 10 ký tự
+        String year = LocalDate.now().format(DateTimeFormatter.ofPattern("yy")); // 26
+        String prefix = "ST" + year; // ST26
         
         String studentCode;
         int attempts = 0;
         do {
-            int randomNum = 1000 + random.nextInt(9000); // 4-digit number
-            studentCode = prefix + randomNum;
+            int randomNum = 100000 + random.nextInt(900000); // 6-digit number: 100000-999999
+            studentCode = prefix + randomNum; // ST26123456 = 10 ký tự
             attempts++;
             if (attempts > 100) {
                 throw new BadRequestException("Unable to generate unique student code");

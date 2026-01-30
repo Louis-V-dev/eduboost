@@ -8,9 +8,8 @@ public class SecurityConstants {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-resources/**",
-            "/api/auth/**"
-
-
+            "/api/auth/**",
+            "/api/parent/validate-invitation"
     );
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
