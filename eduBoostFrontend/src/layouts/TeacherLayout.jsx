@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { BookOpen, FileQuestion, PenTool, LayoutDashboard, LogOut, CheckSquare, FileText } from 'lucide-react';
 import UserMenu from '../components/common/UserMenu';
+import { BookOpen, FileQuestion, LayoutDashboard, LogOut, CheckSquare, FileText, GraduationCap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const TeacherLayout = () => {
@@ -26,6 +27,9 @@ const TeacherLayout = () => {
                 <nav className="sidebar-nav">
                     <Link to="/teacher/dashboard" className={`nav-item ${isActive('/teacher/dashboard') ? 'active' : ''}`}>
                         <LayoutDashboard size={20} /> Tổng quan
+                    </Link>
+                    <Link to="/teacher/classes" className={`nav-item ${location.pathname.startsWith('/teacher/classes') ? 'active' : ''}`}>
+                        <GraduationCap size={20} /> Lớp học
                     </Link>
                     <Link to="/teacher/lectures" className={`nav-item ${isActive('/teacher/lectures') ? 'active' : ''}`}>
                         <BookOpen size={20} /> Bài giảng

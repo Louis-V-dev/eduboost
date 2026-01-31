@@ -1,5 +1,6 @@
 package com.fptu.eduBoostBackend.entities;
 
+import com.fptu.eduBoostBackend.entities.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,7 +28,7 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, length = 20)
     private String phone;
 
     @Column(nullable = false, unique = true)
@@ -35,6 +36,20 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(name = "full_name", length = 255)
+    private String fullName;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

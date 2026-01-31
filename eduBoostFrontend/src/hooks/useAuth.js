@@ -92,14 +92,15 @@ export function useAuth() {
             
             const roleName = getRoleName(userInfo.roles);
             
-            // Điều hướng sau đăng nhập - luôn chuyển đến /teacher
+            // Điều hướng sau đăng nhập theo role
             const redirect = options?.redirectTo;
             if (redirect === null) {
                 // Không điều hướng, ở lại trang hiện tại
             } else if (typeof redirect === 'string') {
                 navigate(redirect);
             } else {
-                navigate("/teacher");
+                const roleRedirect = roleName === 'PARENT' ? '/parent' : roleName === 'STUDENT' ? '/student' : roleName === 'ADMIN' ? '/admin' : '/teacher';
+                navigate(roleRedirect);
             }
 
             return userInfo;
@@ -186,8 +187,16 @@ export function useAuth() {
                 setUser(userInfo);
                 showSuccessToast("Đăng nhập thành công!");
                 
-                // Redirect giống như login thông thường - luôn chuyển đến /teacher
-                navigate("/teacher");
+                const getRoleName = (roles) => {
+                    if (!roles || roles.length === 0) return null;
+                    const firstRole = roles[0];
+                    if (typeof firstRole === 'string') return firstRole;
+                    if (typeof firstRole === 'object' && firstRole.roleName) return firstRole.roleName;
+                    return null;
+                };
+                const roleName = getRoleName(userInfo.roles);
+                const roleRedirect = roleName === 'PARENT' ? '/parent' : roleName === 'STUDENT' ? '/student' : roleName === 'ADMIN' ? '/admin' : '/teacher';
+                navigate(roleRedirect);
                 
                 return true;
             }

@@ -47,6 +47,7 @@ export const authService = {
             email: data.email,
             phone: data.phone,
         };
+        if (data.role) payload.role = data.role;
 
         try {
             // Use a direct axios call WITHOUT credentials/Authorization to avoid CORS preflight issues

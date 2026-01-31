@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { Users, Settings, Shield, LayoutDashboard, LogOut } from 'lucide-react';
 import UserMenu from '../components/common/UserMenu';
+import { Users, Settings, LayoutDashboard, LogOut, Mail } from 'lucide-react';
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -23,6 +24,9 @@ const AdminLayout = () => {
                     </Link>
                     <Link to="/admin/users" className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}>
                         <Users size={20} /> Quản lý tài khoản
+                    </Link>
+                    <Link to="/admin/invitations" className={`nav-item ${location.pathname.startsWith('/admin/invitations') ? 'active' : ''}`}>
+                        <Mail size={20} /> Mã mời
                     </Link>
                     <Link to="/admin/settings" className={`nav-item ${isActive('/admin/settings') ? 'active' : ''}`}>
                         <Settings size={20} /> Cài đặt hệ thống

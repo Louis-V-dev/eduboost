@@ -73,35 +73,11 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 
-    /**
-     * Lấy username từ token
-     */
-    public String getUsernameFromToken(String token) {
-        Claims claims = getClaims(token);
-        return claims.getSubject();
-    }
 
-    /**
-     * Lấy token version từ claims
-     */
+
+
     public int getTokenVersion(Claims claims) {
         return (int) claims.get("tokenVersion");
     }
 
-    /**
-     * Kiểm tra token có hết hạn không
-     */
-    public boolean isTokenExpired(Claims claims) {
-        return claims.getExpiration().before(new Date());
-    }
-
-    /**
-     * Extract token từ header
-     */
-    public String extractToken(String bearerToken) {
-        if (bearerToken != null && bearerToken.startsWith(SecurityConstants.BEARER_PREFIX)) {
-            return bearerToken.substring(SecurityConstants.BEARER_PREFIX_LENGTH);
-        }
-        return null;
-    }
 }
