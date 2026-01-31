@@ -129,14 +129,13 @@ function App() {
           {/* Teacher Dashboard Routes */}
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPlaceholder title="Teacher Dashboard" />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="classes" element={<ClassList />} />
             <Route path="classes/:classId/students" element={<ClassStudents />} />
             <Route path="students/new" element={<CreateStudent />} />
             <Route path="students/:studentId" element={<StudentDetail />} />
             <Route path="students/:studentId/edit" element={<EditStudent />} />
             <Route path="students/:studentId/invitations" element={<StudentInvitations />} />
-            <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="users" element={<DashboardPlaceholder title="Manage Users" />} />
             <Route path="lectures" element={<LectureManagement />} />
             <Route path="lectures/doc" element={<LectureEditorDoc />} />

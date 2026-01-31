@@ -1,8 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { Users, Settings, Shield, LayoutDashboard, LogOut } from 'lucide-react';
+import { Users, Settings, Shield, LayoutDashboard, LogOut, Mail } from 'lucide-react';
 import UserMenu from '../components/common/UserMenu';
-import { Users, Settings, LayoutDashboard, LogOut, Mail } from 'lucide-react';
 
 const AdminLayout = () => {
     const location = useLocation();

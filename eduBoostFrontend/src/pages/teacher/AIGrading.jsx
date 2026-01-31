@@ -139,7 +139,7 @@ const AIGrading = () => {
                     max-width: 1400px;
                     margin: 0 auto;
                     padding: 2rem;
-                    height: calc(100vh - 80px); /* Adjust for navbar */
+                    min-height: calc(100vh - 120px);
                     display: flex;
                     flex-direction: column;
                 }
@@ -160,7 +160,8 @@ const AIGrading = () => {
                     flex: 1;
                     display: flex;
                     gap: 1.5rem;
-                    overflow: hidden;
+                    min-height: 600px;
+                    max-height: calc(100vh - 250px);
                 }
 
                 /* Sidebar */

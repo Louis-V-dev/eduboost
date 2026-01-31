@@ -1,8 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
-import { BookOpen, FileQuestion, PenTool, LayoutDashboard, LogOut, CheckSquare, FileText } from 'lucide-react';
+import { BookOpen, FileQuestion, PenTool, LayoutDashboard, LogOut, CheckSquare, FileText, GraduationCap } from 'lucide-react';
 import UserMenu from '../components/common/UserMenu';
-import { BookOpen, FileQuestion, LayoutDashboard, LogOut, CheckSquare, FileText, GraduationCap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const TeacherLayout = () => {
