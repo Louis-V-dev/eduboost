@@ -4,8 +4,10 @@ import com.fptu.eduBoostBackend.constant.PredefinedRole;
 import com.fptu.eduBoostBackend.dto.request.LinkStudentRequest;
 import com.fptu.eduBoostBackend.dto.request.ValidateInvitationRequest;
 import com.fptu.eduBoostBackend.dto.response.LinkStudentResponse;
+import com.fptu.eduBoostBackend.dto.response.ParentStudentDetailResponse;
 import com.fptu.eduBoostBackend.dto.response.ValidateInvitationResponse;
 import com.fptu.eduBoostBackend.entities.*;
+import com.fptu.eduBoostBackend.entities.Class;
 import com.fptu.eduBoostBackend.entities.enums.InvitationStatus;
 import com.fptu.eduBoostBackend.exception.exceptions.BadRequestException;
 import com.fptu.eduBoostBackend.exception.exceptions.ConflictException;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -212,5 +216,99 @@ public class ParentServiceImpl implements ParentService {
                 .relationship(savedLink.getRelationship())
                 .linkedAt(LocalDateTime.now())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ParentStudentDetailResponse> getMyStudents() {
+        Parent parent = getCurrentParent();
+        log.info("Fetching students for parent: {}", parent.getParentId());
+
+        List<ParentStudent> parentStudents = parentStudentRepository.findByParent(parent);
+
+        return parentStudents.stream()
+                .map(this::convertToParentStudentDetailResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ParentStudentDetailResponse getStudentDetail(String studentId) {
+        Parent parent = getCurrentParent();
+        log.info("Fetching student detail: {} for parent: {}", studentId, parent.getParentId());
+
+        List<ParentStudent> parentStudents = parentStudentRepository.findByParent(parent);
+        
+        ParentStudent parentStudent = parentStudents.stream()
+                .filter(ps -> ps.getStudent().getStudentId().equals(studentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found or not linked to you"));
+
+        return convertToParentStudentDetailResponse(parentStudent);
+    }
+
+    private ParentStudentDetailResponse convertToParentStudentDetailResponse(ParentStudent parentStudent) {
+        Student student = parentStudent.getStudent();
+        Class classEntity = student.getClassEntity();
+
+        // Student info
+        ParentStudentDetailResponse.StudentDetailDTO studentDTO = ParentStudentDetailResponse.StudentDetailDTO.builder()
+                .studentId(student.getStudentId())
+                .studentCode(student.getStudentCode())
+                .fullName(student.getUser().getFullName() != null ? 
+                        student.getUser().getFullName() : student.getUser().getUsername())
+                .email(student.getUser().getEmail())
+                .avatar(student.getUser().getAvatarUrl())
+                .dateOfBirth(student.getDateOfBirth())
+                .gender(student.getGender())
+                .build();
+
+        // Class info
+        ParentStudentDetailResponse.ClassDetailDTO classDTO = null;
+        if (classEntity != null) {
+            Teacher teacher = classEntity.getTeacher();
+            ParentStudentDetailResponse.TeacherDTO teacherDTO = null;
+            if (teacher != null) {
+                teacherDTO = ParentStudentDetailResponse.TeacherDTO.builder()
+                        .teacherId(teacher.getTeacherId())
+                        .fullName(teacher.getUser().getFullName() != null ? 
+                                teacher.getUser().getFullName() : teacher.getUser().getUsername())
+                        .email(teacher.getUser().getEmail())
+                        .build();
+            }
+
+            classDTO = ParentStudentDetailResponse.ClassDetailDTO.builder()
+                    .classId(classEntity.getClassId())
+                    .className(classEntity.getClassName())
+                    .gradeLevel(extractGradeLevel(classEntity.getClassName()))
+                    .teacher(teacherDTO)
+                    .build();
+        }
+
+        return ParentStudentDetailResponse.builder()
+                .linkId(parentStudent.getId())
+                .student(studentDTO)
+                .classInfo(classDTO)
+                .relationship(parentStudent.getRelationship())
+                .isPrimary(false) // TODO: implement isPrimary logic if needed
+                .linkedAt(LocalDateTime.now()) // TODO: add linkedAt field to ParentStudent entity
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void unlinkStudent(String studentId) {
+        Parent parent = getCurrentParent();
+        log.info("Parent {} attempting to unlink student: {}", parent.getParentId(), studentId);
+
+        List<ParentStudent> parentStudents = parentStudentRepository.findByParent(parent);
+        
+        ParentStudent parentStudent = parentStudents.stream()
+                .filter(ps -> ps.getStudent().getStudentId().equals(studentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found or not linked to you"));
+
+        parentStudentRepository.delete(parentStudent);
+        log.info("Successfully unlinked parent {} from student {}", parent.getParentId(), studentId);
     }
 }
