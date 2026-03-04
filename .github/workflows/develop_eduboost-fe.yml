@@ -31,7 +31,7 @@ jobs:
 
       - name: Build frontend
         working-directory: ./eduBoostFrontend
-        run: npm run build
+        run: rm -rf dist && npm run build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
@@ -54,6 +54,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
+
+      # Flatten so index.html is at wwwroot root (artifact may keep path eduBoostFrontend/dist/ or dist/)
+      - name: Prepare deploy root
+        run: |
+          if [ -d eduBoostFrontend/dist ]; then
+            mv eduBoostFrontend/dist/* .
+            mv eduBoostFrontend/dist/.* . 2>/dev/null || true
+            rm -rf eduBoostFrontend
+          elif [ -d dist ] && [ ! -f index.html ]; then
+            mv dist/* .
+            mv dist/.* . 2>/dev/null || true
+            rmdir dist 2>/dev/null || true
+          fi
+          ls -la
 
       - name: Login to Azure
         uses: azure/login@v2
