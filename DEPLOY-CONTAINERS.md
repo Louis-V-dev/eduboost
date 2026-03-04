@@ -207,6 +207,20 @@ Your existing Dockerfiles and Compose files define the app; Azure is just where 
 
 ---
 
+## Troubleshooting – Azure Frontend (eduboost-fe)
+
+If you deploy the frontend to Azure Web App (eduboost-fe), you may see these in the logs:
+
+| Message | Meaning | What to do |
+|--------|---------|------------|
+| **`cates.crt` does not contain exactly one certificate or CRL** | System CA store update found a cert file with multiple certs or wrong format. | **If you didn’t add a custom cert:** Safe to ignore. It’s from the base image. **If you added a custom cert** (TLS/SSL in Azure): Re-upload a `.crt` that has **exactly one** PEM block (one `-----BEGIN CERTIFICATE-----` … `-----END CERTIFICATE-----`). Use only the leaf cert, not the full chain in one file. |
+| **Could not find build manifest at oryx-manifest.toml** | No Oryx build was run (we deploy pre-built `dist`). | Expected. The app still starts with `default-static-site.js`. No fix needed. |
+| **node /opt/startup/default-static-site.js** | Azure is serving your static files with the default static site server. | This is correct. Your built files in `wwwroot` are being served. |
+
+For client-side routing (e.g. React Router), the repo includes `public/web.config` so requests to paths like `/login` or `/admin` are rewritten to `/index.html`. Rebuild and redeploy the frontend so `web.config` is in `dist/`.
+
+---
+
 ## Quick reference
 
 | Goal | Command (from project root) |
