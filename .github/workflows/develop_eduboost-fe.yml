@@ -36,11 +36,18 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
+      # Package so artifact root = exactly what should be in wwwroot (no nested paths)
+      - name: Package for wwwroot
+        run: |
+          mkdir -p deploy
+          cp -r eduBoostFrontend/dist/. deploy/
+          ls -la deploy
+
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: eduBoostFrontend/dist
+          path: deploy
 
   deploy:
     runs-on: ubuntu-latest
@@ -55,19 +62,32 @@ jobs:
         with:
           name: frontend-dist
 
-      # Flatten so index.html is at wwwroot root (artifact may keep path eduBoostFrontend/dist/ or dist/)
+      # Ensure index.html is at workspace root for package (artifact may extract as "deploy/" or flat)
       - name: Prepare deploy root
         run: |
-          if [ -d eduBoostFrontend/dist ]; then
+          if [ -d deploy ] && [ ! -f index.html ]; then
+            shopt -s dotglob 2>/dev/null || true
+            mv deploy/* . 2>/dev/null || true
+            mv deploy/.* . 2>/dev/null || true
+            rm -rf deploy
+          elif [ -d eduBoostFrontend/dist ]; then
+            shopt -s dotglob 2>/dev/null || true
             mv eduBoostFrontend/dist/* .
             mv eduBoostFrontend/dist/.* . 2>/dev/null || true
             rm -rf eduBoostFrontend
           elif [ -d dist ] && [ ! -f index.html ]; then
+            shopt -s dotglob 2>/dev/null || true
             mv dist/* .
             mv dist/.* . 2>/dev/null || true
-            rmdir dist 2>/dev/null || true
+            rm -rf dist
           fi
+          echo "Contents to deploy:"
           ls -la
+          ls -la assets 2>/dev/null || true
+
+      # Zip contents (no extra root folder) so wwwroot gets index.html at root
+      - name: Create deployment zip
+        run: zip -r deploy.zip . -x "*.git*"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -81,4 +101,4 @@ jobs:
         with:
           app-name: 'eduboost-fe'
           slot-name: 'Production'
-          package: .
+          package: deploy.zip
