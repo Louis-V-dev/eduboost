@@ -219,6 +219,15 @@ If you deploy the frontend to Azure Web App (eduboost-fe), you may see these in 
 
 For client-side routing (e.g. React Router), the repo includes `public/web.config` so requests to paths like `/login` or `/admin` are rewritten to `/index.html`. Rebuild and redeploy the frontend so `web.config` is in `dist/`.
 
+**Static SPA + minimal Node server:** We deploy the Vite build plus a tiny Node server (`server.js`) and `package.json` so the Node.js container has an entry point. The workflow injects these into the deploy package; they are not in the frontend repo. Azure runs `npm start` → `node server.js`, which serves static files and SPA fallback. You can leave Startup Command empty (Azure will use `npm start`); or set it to `node server.js` if needed. If you still see "waiting for your content", the deploy may not have put `index.html` at wwwroot. In Azure Portal → App Service → **Development Tools** → **SSH** → run:
+
+```bash
+cd /home/site/wwwroot
+ls -la
+```
+
+You should see `index.html`, `web.config`, and an `assets/` folder. If wwwroot is empty or only has other files, fix the deployment (workflow uses `clean: true` and a zip with files at root).
+
 ---
 
 ## Quick reference

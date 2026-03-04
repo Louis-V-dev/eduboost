@@ -36,11 +36,37 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
-      # Package so artifact root = exactly what should be in wwwroot (no nested paths)
+      # Package static build + minimal Node server so Azure runs our app instead of placeholder
       - name: Package for wwwroot
         run: |
           mkdir -p deploy
           cp -r eduBoostFrontend/dist/. deploy/
+          cat > deploy/package.json << 'PKG'
+          {"name":"eduboost-fe","version":"1.0.0","description":"Static SPA","scripts":{"start":"node server.js"},"engines":{"node":">=18"}}
+          PKG
+          cat > deploy/server.js << 'SRV'
+          const http = require('http');
+          const fs = require('fs');
+          const path = require('path');
+          const url = require('url');
+          const port = process.env.PORT || 8080;
+          const mime = { '.html':'text/html','.js':'application/javascript','.json':'application/json','.css':'text/css','.ico':'image/x-icon','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.woff2':'font/woff2' };
+          const server = http.createServer((req, res) => {
+            let p = (url.parse(req.url).pathname || '/').replace(/^\//, '') || 'index.html';
+            p = path.join(__dirname, p);
+            fs.readFile(p, (err, data) => {
+              if (err) {
+                if (err.code === 'ENOENT') { fs.readFile(path.join(__dirname, 'index.html'), (e, d) => { res.writeHead(200, { 'Content-Type': 'text/html' }); res.end(d || ''); }); return; }
+                res.writeHead(500); res.end();
+                return;
+              }
+              const ext = path.extname(p);
+              res.writeHead(200, { 'Content-Type': mime[ext] || 'application/octet-stream' });
+              res.end(data);
+            });
+          });
+          server.listen(port, () => console.log('Server on port', port));
+          SRV
           ls -la deploy
 
       - name: Upload artifact for deployment
