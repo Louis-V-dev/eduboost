@@ -102,3 +102,4 @@ jobs:
           app-name: 'eduboost-fe'
           slot-name: 'Production'
           package: deploy.zip
+          clean: true
